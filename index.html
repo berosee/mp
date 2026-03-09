@@ -3,24 +3,18 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta content='img.jpg' property='og:image'/>
-  <title>mpplay</title>
+  <title>mpplay - Neon Player</title>
   <style>
     :root {
       --neon-blue: #00d2ff;
       --deep-blue: #4a7cff;
-      --glass-bg: rgba(255, 255, 255, 0.1);
+      --dark-bg: #1a1c20;
     }
 
     body {
-      margin: 0;
-      padding: 0;
+      margin: 0; padding: 0;
       font-family: 'Pretendard', sans-serif;
-      background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), 
-                  url('https://images.unsplash.com/photo-1472289065668-ce6a9a442c23?q=80&w=2071&auto=format&fit=crop');
-      background-size: cover;
-      background-position: center;
-      background-attachment: fixed;
+      background: #121212;
       color: #fff;
       display: flex;
       flex-direction: column;
@@ -29,115 +23,66 @@
       overflow: hidden;
     }
 
-    /* 네비게이션 최상단 고정 */
+    /* 네비게이션 */
     .nav {
-      display: flex;
-      gap: 5px;
-      margin: 10px 0;
-      width: 92%;
-      max-width: 400px;
-      background: var(--glass-bg);
-      backdrop-filter: blur(15px);
-      padding: 4px;
-      border-radius: 50px;
-      border: 1px solid rgba(255,255,255,0.1);
+      display: flex; gap: 5px; margin: 15px 0; width: 92%; max-width: 400px;
+      background: rgba(255,255,255,0.05); padding: 5px; border-radius: 50px;
     }
-
     .nav a {
-      flex: 1;
-      text-decoration: none;
-      color: rgba(255, 255, 255, 0.5);
-      padding: 6px 0;
-      text-align: center;
-      border-radius: 25px;
-      font-size: 11px;
-      font-weight: bold;
-      transition: 0.3s;
+      flex: 1; text-decoration: none; color: rgba(255, 255, 255, 0.4);
+      padding: 10px 0; text-align: center; border-radius: 25px;
+      font-size: 12px; font-weight: bold; transition: 0.3s;
     }
-
     .nav a.active {
-      background: var(--deep-blue);
-      color: #fff;
-      box-shadow: 0 0 10px var(--deep-blue);
+      background: var(--deep-blue); color: #fff;
+      box-shadow: 0 0 15px var(--deep-blue);
     }
 
-    /* [디자인 요청 반영] 이미지 099.jpg 스타일의 네온 플레이어 */
+    /* 플레이어 카드 (이미지 디자인 반영) */
     .player-card {
-      width: 92%;
-      max-width: 400px;
-      background: rgba(15, 23, 42, 0.6);
-      backdrop-filter: blur(20px);
-      border-radius: 20px;
-      padding: 12px 15px;
-      text-align: center;
-      border: 1px solid rgba(0, 210, 255, 0.3);
-      box-shadow: 0 0 20px rgba(0, 210, 255, 0.15);
-      margin-bottom: 10px;
+      width: 92%; max-width: 400px;
+      background: #0f172a;
+      border-radius: 30px; padding: 25px 20px;
+      text-align: center; border: 1px solid rgba(0, 210, 255, 0.3);
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.5);
+      margin-bottom: 15px;
     }
 
-    /* 슬림한 곡 정보 영역 */
-    .song-info { margin-bottom: 8px; }
-    .song-info .category { font-size: 9px; color: var(--neon-blue); letter-spacing: 2px; text-transform: uppercase; }
-    .song-info .title { font-size: 14px; font-weight: bold; margin-top: 2px; color: #fff; text-shadow: 0 0 5px rgba(255,255,255,0.3); }
+    .song-info .category { font-size: 10px; color: var(--neon-blue); letter-spacing: 2px; margin-bottom: 5px; }
+    .song-info .title { font-size: 18px; font-weight: bold; margin-bottom: 15px; }
 
-    /* 비주얼라이저 느낌의 진행 바 구역 */
-    .visualizer-area {
-      position: relative;
-      height: 30px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 5px 0;
+    /* 타임코드 및 비주얼라이저 중앙 배치 */
+    .status-row {
+      display: flex; justify-content: center; align-items: center;
+      gap: 12px; margin-bottom: 15px;
     }
+    .time-display { font-size: 26px; font-family: 'Arial', sans-serif; color: #fff; }
 
-    /* 가짜 비주얼라이저 애니메이션 */
-    .bar-container { display: flex; gap: 2px; align-items: flex-end; height: 15px; opacity: 0.5; }
-    .bar { width: 3px; background: var(--neon-blue); border-radius: 1px; animation: bounce 1s ease-in-out infinite alternate; animation-play-state: paused; }
-    .bar.playing { animation-play-state: running; }
-    @keyframes bounce { from { height: 3px; } to { height: 15px; } }
+    .bar-container { display: flex; gap: 3px; align-items: flex-end; height: 18px; }
+    .bar { width: 3px; background: var(--neon-blue); border-radius: 1px; height: 5px; }
+    .bar.playing { animation: bounce 0.8s ease-in-out infinite alternate; }
+    @keyframes bounce { from { height: 5px; } to { height: 18px; } }
 
-    /* 실제 진행 바 */
-    .progress-container { width: 100%; cursor: pointer; padding: 5px 0; }
-    .progress-bg { height: 3px; background: rgba(255, 255, 255, 0.1); border-radius: 10px; overflow: hidden; }
-    .progress-fill { width: 0%; height: 100%; background: linear-gradient(90deg, var(--deep-blue), var(--neon-blue)); box-shadow: 0 0 8px var(--neon-blue); }
+    /* 진행 바 */
+    .progress-container { width: 100%; cursor: pointer; padding: 10px 0; margin-bottom: 15px; }
+    .progress-bg { height: 2px; background: rgba(255, 255, 255, 0.1); border-radius: 2px; position: relative; }
+    .progress-fill { width: 0%; height: 100%; background: var(--neon-blue); box-shadow: 0 0 10px var(--neon-blue); }
 
-    /* 컨트롤 버튼 그룹 */
-    .controls { display: flex; justify-content: center; align-items: center; gap: 25px; margin-top: 5px; }
-    .btn { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; opacity: 0.7; transition: 0.2s; }
-    .btn:hover { opacity: 1; transform: scale(1.1); }
+    /* 컨트롤 (재생버튼 박스 디자인 반영) */
+    .controls { display: flex; justify-content: center; align-items: center; gap: 30px; }
+    .btn { background: none; border: none; color: #888; font-size: 20px; cursor: pointer; transition: 0.2s; }
     .btn-play { 
-      font-size: 32px; 
-      color: var(--neon-blue); 
-      opacity: 1; 
-      filter: drop-shadow(0 0 5px var(--neon-blue));
+      font-size: 28px; color: var(--neon-blue);
+      border: 2px solid #fff; border-radius: 10px;
+      padding: 10px 15px; display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 15px rgba(0, 210, 255, 0.4);
     }
 
-    /* 리스트 영역 (10곡 최적화) */
-    .playlist-wrapper {
-      width: 92%;
-      max-width: 400px;
-      flex: 1;
-      background: rgba(0, 0, 0, 0.3);
-      border-radius: 15px 15px 0 0;
-      overflow-y: auto;
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      -webkit-overflow-scrolling: touch;
-    }
-
+    /* 리스트 영역 */
+    .playlist-wrapper { width: 92%; max-width: 400px; flex: 1; overflow-y: auto; }
     .playlist-table { width: 100%; border-collapse: collapse; }
-    .playlist-table td { 
-      padding: 6px 20px; /* 10곡 노출을 위한 간격 */
-      border-bottom: 1px solid rgba(255, 255, 255, 0.03); 
-      cursor: pointer; 
-      font-size: 18px; 
-      color: rgba(255, 255, 255, 0.7);
-    }
-    .playlist-table tr.active td { 
-      color: var(--neon-blue); 
-      background: rgba(0, 210, 255, 0.08); 
-      font-weight: bold; 
-      border-left: 3px solid var(--neon-blue);
-    }
+    .playlist-table td { padding: 12px 15px; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.05); color: #aaa; cursor: pointer; }
+    .playlist-table tr.active td { color: var(--neon-blue); font-weight: bold; background: rgba(0, 210, 255, 0.05); }
   </style>
 </head>
 <body>
@@ -154,7 +99,7 @@
     <div class="title" id="labelTitle">곡을 선택해 주세요</div>
   </div>
 
-  <div class="visualizer-area">
+  <div class="status-row">
     <div class="bar-container" id="visualizer">
       <div class="bar" style="animation-delay: 0.1s"></div>
       <div class="bar" style="animation-delay: 0.3s"></div>
@@ -162,6 +107,7 @@
       <div class="bar" style="animation-delay: 0.4s"></div>
       <div class="bar" style="animation-delay: 0.1s"></div>
     </div>
+    <div class="time-display"><span id="curTime">00</span>/<span id="durTime">00</span></div>
   </div>
 
   <div class="progress-container" id="progArea">
@@ -180,6 +126,7 @@
 </div>
 
 <script>
+// [데이터 부분은 기존과 동일]
 const playlists = {
     "enka": [
         {
@@ -279,16 +226,33 @@ const playlists = {
             "url": "music/old/최유나 - 그 겨울의 찻집.mp3"
         }
     ]
-};
+}; 
+// (사용자님의 실제 리스트로 채워주세요)
+
 const params = new URLSearchParams(window.location.search);
 const curCat = params.get("cat") || "old";
 const curList = playlists[curCat] || playlists["old"];
-
 document.getElementById("nav-" + curCat).classList.add("active");
 document.getElementById("labelCat").textContent = curCat.toUpperCase();
 
 const audio = new Audio();
 let curIdx = 0;
+
+// 시간 포맷 함수 (00:00 대신 이미지처럼 00 형식 원할 시 조정 가능)
+function formatTime(sec) {
+  if (isNaN(sec)) return "00";
+  let m = Math.floor(sec / 60);
+  let s = Math.floor(sec % 60);
+  return (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
+}
+
+// 이미지처럼 "분" 단위 위주로 보이고 싶을 때 (예: 01/04)
+function formatSimple(sec) {
+  if (isNaN(sec)) return "00";
+  let m = Math.floor(sec / 60);
+  let s = Math.floor(sec % 60);
+  return m.toString().padStart(2, '0'); // 단순히 분만 표시하거나, 위 formatTime을 쓰세요.
+}
 
 const listTable = document.getElementById("listTable");
 curList.forEach((song, i) => {
@@ -301,20 +265,14 @@ curList.forEach((song, i) => {
 function playSong(i) {
   curIdx = i;
   audio.src = curList[i].url;
-  audio.play().catch(e => console.log("Play blocked"));
+  audio.play();
   document.getElementById("labelTitle").textContent = curList[i].title;
   updateUI();
-}
-
-function togglePlay() {
-  if (!audio.src) { playSong(0); return; }
-  audio.paused ? audio.play() : audio.pause();
 }
 
 function updateUI() {
   const rows = document.querySelectorAll("#listTable tr");
   rows.forEach((row, k) => row.classList.toggle("active", k === curIdx));
-  rows[curIdx]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 audio.onplay = () => {
@@ -325,20 +283,23 @@ audio.onpause = () => {
   document.getElementById("btnPlay").textContent = "▶";
   document.querySelectorAll(".bar").forEach(b => b.classList.remove("playing"));
 };
-audio.onended = () => document.getElementById("btnNext").click();
+
 audio.ontimeupdate = () => {
-  if (audio.duration) {
-    const per = (audio.currentTime / audio.duration) * 100;
-    document.getElementById("progFill").style.width = per + "%";
+  const cur = audio.currentTime;
+  const dur = audio.duration;
+  if (dur) {
+    document.getElementById("progFill").style.width = (cur / dur * 100) + "%";
+    // 이미지의 00/00 형식 반영 (분 단위 표시 예시)
+    document.getElementById("curTime").textContent = Math.floor(cur/60).toString().padStart(2,'0');
+    document.getElementById("durTime").textContent = Math.floor(dur/60).toString().padStart(2,'0');
   }
 };
 
-document.getElementById("btnPlay").onclick = togglePlay;
+document.getElementById("btnPlay").onclick = () => audio.paused ? audio.play() : audio.pause();
 document.getElementById("btnNext").onclick = () => playSong((curIdx + 1) % curList.length);
 document.getElementById("btnPrev").onclick = () => playSong((curIdx - 1 + curList.length) % curList.length);
 document.getElementById("progArea").onclick = (e) => {
-  const w = document.getElementById("progArea").clientWidth;
-  audio.currentTime = (e.offsetX / w) * audio.duration;
+  audio.currentTime = (e.offsetX / document.getElementById("progArea").clientWidth) * audio.duration;
 };
 </script>
 </body>
