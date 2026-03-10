@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>mp</title>
+  <title>mpplay - Extended List</title>
   <style>
     :root {
       --neon-blue: #00d2ff;
@@ -22,12 +22,12 @@
       overflow: hidden;
     }
 
-    /* 모든 요소 아담한 사이즈 고정 */
     .nav, .player-card, .playlist-wrapper {
       width: 92%;
       max-width: 360px;
     }
 
+    /* 네비게이션 */
     .nav {
       display: flex; gap: 4px; margin: 12px 0;
       background: rgba(255,255,255,0.05); padding: 4px; border-radius: 50px;
@@ -42,30 +42,21 @@
       box-shadow: 0 0 10px var(--deep-blue);
     }
 
-    /* 플레이어 카드 - 상단 카테고리 삭제 및 높이 축소 */
+    /* 플레이어 카드 (슬림 버전) */
     .player-card {
       background: #0f172a;
-      border-radius: 20px; 
-      padding: 20px 18px 15px 18px; /* 위쪽 패딩 조절 */
-      text-align: center; 
-      border: 1px solid rgba(0, 210, 255, 0.2);
+      border-radius: 20px; padding: 20px 18px 15px 18px;
+      text-align: center; border: 1px solid rgba(0, 210, 255, 0.2);
       box-shadow: 0 5px 15px rgba(0,0,0,0.5);
       margin-bottom: 12px;
       box-sizing: border-box;
     }
 
-    /* 곡 제목을 최상단으로 배치 */
     .song-info .title { 
-      font-size: 16px; 
-      font-weight: bold; 
-      margin-bottom: 15px; 
-      white-space: nowrap; 
-      overflow: hidden; 
-      text-overflow: ellipsis;
-      color: #fff;
+      font-size: 16px; font-weight: bold; margin-bottom: 15px; 
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
 
-    /* 타임코드 및 비주얼라이저 */
     .status-row {
       display: flex; justify-content: center; align-items: center;
       gap: 12px; margin-bottom: 15px;
@@ -77,12 +68,10 @@
     .bar.playing { animation: bounce 0.6s ease-in-out infinite alternate; }
     @keyframes bounce { from { height: 4px; } to { height: 16px; } }
 
-    /* 진행 바 */
     .progress-container { width: 100%; cursor: pointer; padding: 5px 0; margin-bottom: 12px; }
-    .progress-bg { height: 2px; background: rgba(255, 255, 255, 0.1); border-radius: 2px; position: relative; }
+    .progress-bg { height: 2px; background: rgba(255, 255, 255, 0.1); border-radius: 2px; }
     .progress-fill { width: 0%; height: 100%; background: var(--neon-blue); box-shadow: 0 0 8px var(--neon-blue); }
 
-    /* 컨트롤 버튼 */
     .controls { display: flex; justify-content: center; align-items: center; gap: 25px; }
     .btn { background: none; border: none; color: #4b5563; font-size: 20px; cursor: pointer; }
     .btn-play-box { 
@@ -93,18 +82,31 @@
     }
     .btn-play-box span { color: var(--neon-blue); font-size: 24px; }
 
-    /* 리스트 스타일 */
+    /* 리스트 영역 - 높이를 약 12곡 정도로 확장 */
     .playlist-wrapper { 
-      flex: 1; overflow-y: auto; 
-      background: rgba(0,0,0,0.2); border-radius: 15px 15px 0 0;
+      flex: 1; 
+      overflow-y: auto; 
+      background: rgba(0,0,0,0.2); 
+      border-radius: 15px 15px 0 0;
+      /* 12곡이 보이도록 최소 높이 설정 (곡당 약 41px 기준) */
+      max-height: 500px; 
     }
     .playlist-table { width: 100%; border-collapse: collapse; }
     .playlist-table td { 
-      padding: 12px 18px; font-size: 14px; 
+      padding: 11px 18px; /* 간격을 살짝 줄여 더 많은 곡이 보이게 조정 */
+      font-size: 14px; 
       border-bottom: 1px solid rgba(255,255,255,0.03); 
       color: #999; cursor: pointer; 
     }
-    .playlist-table tr.active td { color: var(--neon-blue); font-weight: bold; background: rgba(0,210,255,0.05); }
+    .playlist-table tr.active td { 
+      color: var(--neon-blue); 
+      font-weight: bold; 
+      background: rgba(0,210,255,0.08); 
+    }
+
+    /* 스크롤바 디자인 (깔끔하게) */
+    .playlist-wrapper::-webkit-scrollbar { width: 4px; }
+    .playlist-wrapper::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
   </style>
 </head>
 <body>
@@ -143,12 +145,12 @@
   </div>
 </div>
 
-<div class="playlist-wrapper">
+<div class="playlist-wrapper" id="scrollContainer">
   <table class="playlist-table" id="listTable"></table>
 </div>
 
 <script>
-// 데이터 예시
+// 데이터 예시 (충분한 곡 수 추가)
 const playlists = {
     "enka": [
         {
@@ -287,8 +289,6 @@ function formatTime(sec) {
   return m.toString().padStart(2, '0') + ":" + s.toString().padStart(2, '0');
 }
 
-/* ... 상단 스타일 및 HTML 구조는 동일 ... */
-
 function playSong(i) {
   curIdx = i;
   isLoaded = true;
@@ -300,23 +300,19 @@ function playSong(i) {
 
 function updateUI() {
   const rows = document.querySelectorAll("#listTable tr");
-  
-  // 모든 행에서 active 클래스 제거하고 현재 재생 곡에 추가
   rows.forEach((row, k) => {
-    const isActive = (k === curIdx);
-    row.classList.toggle("active", isActive);
-    
-    // 현재 재생 중인 곡이 리스트 뷰포트 안으로 들어오도록 스크롤
-    if (isActive) {
+    if (k === curIdx) {
+      row.classList.add("active");
+      // 옵션 B: 화면에 가려질 때만 혹은 가장 적절한 위치로 스크롤
       row.scrollIntoView({
         behavior: 'smooth',
-        block: 'nearest' // 리스트가 너무 길 때 가장 가까운 위치로 스크롤
+        block: 'center' // 현재 곡이 리스트의 중앙에 오도록 하여 위아래 곡을 확인하기 편하게 함
       });
+    } else {
+      row.classList.remove("active");
     }
   });
 }
-
-/* ... 하단 이벤트 리스너 및 타임코드 로직 동일 ... */
 
 document.getElementById("btnPlayWrap").onclick = () => {
   if (!isLoaded) { playSong(0); } 
@@ -348,6 +344,7 @@ audio.onpause = () => {
 audio.onended = () => document.getElementById("btnNext").click();
 document.getElementById("btnNext").onclick = () => playSong((curIdx + 1) % curList.length);
 document.getElementById("btnPrev").onclick = () => playSong((curIdx - 1 + curList.length) % curList.length);
+
 document.getElementById("progArea").onclick = (e) => {
   if (audio.duration) {
     audio.currentTime = (e.offsetX / document.getElementById("progArea").clientWidth) * audio.duration;
