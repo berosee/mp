@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>mpplay - Compact Edition</title>
+  <title>mp</title>
   <style>
     :root {
       --neon-blue: #00d2ff;
@@ -22,7 +22,7 @@
       overflow: hidden;
     }
 
-    /* 모든 요소 아담한 사이즈 고정 (ENKA 포함) */
+    /* 모든 요소 아담한 사이즈 고정 */
     .nav, .player-card, .playlist-wrapper {
       width: 92%;
       max-width: 360px;
@@ -42,28 +42,34 @@
       box-shadow: 0 0 10px var(--deep-blue);
     }
 
-    /* 플레이어 카드 */
+    /* 플레이어 카드 - 상단 카테고리 삭제 및 높이 축소 */
     .player-card {
       background: #0f172a;
-      border-radius: 20px; padding: 18px;
-      text-align: center; border: 1px solid rgba(0, 210, 255, 0.2);
+      border-radius: 20px; 
+      padding: 20px 18px 15px 18px; /* 위쪽 패딩 조절 */
+      text-align: center; 
+      border: 1px solid rgba(0, 210, 255, 0.2);
       box-shadow: 0 5px 15px rgba(0,0,0,0.5);
       margin-bottom: 12px;
       box-sizing: border-box;
     }
 
-    .song-info .category { font-size: 10px; color: var(--neon-blue); letter-spacing: 2px; margin-bottom: 4px; }
+    /* 곡 제목을 최상단으로 배치 */
     .song-info .title { 
-      font-size: 15px; font-weight: bold; margin-bottom: 12px; 
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      font-size: 16px; 
+      font-weight: bold; 
+      margin-bottom: 15px; 
+      white-space: nowrap; 
+      overflow: hidden; 
+      text-overflow: ellipsis;
+      color: #fff;
     }
 
-    /* 타임코드(초 단위) 및 비주얼라이저 */
+    /* 타임코드 및 비주얼라이저 */
     .status-row {
       display: flex; justify-content: center; align-items: center;
       gap: 12px; margin-bottom: 15px;
     }
-    /* 시간 표시 폰트 사이즈 조정 */
     .time-display { font-size: 20px; font-family: 'Arial', sans-serif; color: #fff; font-weight: 300; }
 
     .bar-container { display: flex; gap: 3px; align-items: flex-end; height: 16px; }
@@ -72,7 +78,7 @@
     @keyframes bounce { from { height: 4px; } to { height: 16px; } }
 
     /* 진행 바 */
-    .progress-container { width: 100%; cursor: pointer; padding: 8px 0; margin-bottom: 10px; }
+    .progress-container { width: 100%; cursor: pointer; padding: 5px 0; margin-bottom: 12px; }
     .progress-bg { height: 2px; background: rgba(255, 255, 255, 0.1); border-radius: 2px; position: relative; }
     .progress-fill { width: 0%; height: 100%; background: var(--neon-blue); box-shadow: 0 0 8px var(--neon-blue); }
 
@@ -111,7 +117,6 @@
 
 <div class="player-card">
   <div class="song-info">
-    <div class="category" id="labelCat">CATEGORY</div>
     <div class="title" id="labelTitle">곡을 선택해 주세요</div>
   </div>
 
@@ -143,7 +148,7 @@
 </div>
 
 <script>
-// 데이터 예시 (기존 사용하시던 리스트를 여기에 넣으시면 됩니다)
+// 데이터 예시
 const playlists = {
     "enka": [
         {
@@ -250,13 +255,11 @@ const curCat = params.get("cat") || "old";
 const curList = playlists[curCat] || playlists["old"];
 
 document.getElementById("nav-" + curCat).classList.add("active");
-document.getElementById("labelCat").textContent = curCat.toUpperCase();
 
 const audio = new Audio();
 let curIdx = 0;
 let isLoaded = false; 
 
-// 리스트 생성
 const listTable = document.getElementById("listTable");
 curList.forEach((song, i) => {
   const tr = document.createElement("tr");
@@ -265,7 +268,6 @@ curList.forEach((song, i) => {
   listTable.appendChild(tr);
 });
 
-// 시간 포맷 (00:00 분:초 단위)
 function formatTime(sec) {
   if (!sec || isNaN(sec)) return "00:00";
   const m = Math.floor(sec / 60);
@@ -277,7 +279,7 @@ function playSong(i) {
   curIdx = i;
   isLoaded = true;
   audio.src = curList[curIdx].url;
-  audio.play().catch(e => console.log("재생 오류:", e));
+  audio.play().catch(e => console.log("재생 오류"));
   document.getElementById("labelTitle").textContent = curList[curIdx].title;
   updateUI();
 }
@@ -287,17 +289,11 @@ function updateUI() {
   rows.forEach((row, k) => row.classList.toggle("active", k === curIdx));
 }
 
-// 재생 버튼 클릭 시 로직
 document.getElementById("btnPlayWrap").onclick = () => {
-  if (!isLoaded) {
-    // 아무 곡도 로드 안 된 경우 첫 곡 재생
-    playSong(0);
-  } else {
-    audio.paused ? audio.play() : audio.pause();
-  }
+  if (!isLoaded) { playSong(0); } 
+  else { audio.paused ? audio.play() : audio.pause(); }
 };
 
-// 초 단위 실시간 업데이트
 audio.ontimeupdate = () => {
   if (audio.duration) {
     document.getElementById("curTime").textContent = formatTime(audio.currentTime);
@@ -321,7 +317,6 @@ audio.onpause = () => {
 };
 
 audio.onended = () => document.getElementById("btnNext").click();
-
 document.getElementById("btnNext").onclick = () => playSong((curIdx + 1) % curList.length);
 document.getElementById("btnPrev").onclick = () => playSong((curIdx - 1 + curList.length) % curList.length);
 document.getElementById("progArea").onclick = (e) => {
