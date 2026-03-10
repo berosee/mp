@@ -289,16 +289,17 @@ function playSong(i) {
 function updateUI() {
   const rows = document.querySelectorAll("#listTable tr");
   
+  // 모든 행에서 active 클래스 제거하고 현재 재생 곡에 추가
   rows.forEach((row, k) => {
-    if (k === curIdx) {
-      row.classList.add("active");
-      // [핵심 추가] 현재 재생 곡이 리스트 뷰포트 안에 보이도록 자동 스크롤
+    const isActive = (k === curIdx);
+    row.classList.toggle("active", isActive);
+    
+    // 현재 재생 중인 곡이 리스트 뷰포트 안으로 들어오도록 스크롤
+    if (isActive) {
       row.scrollIntoView({
-        behavior: 'smooth', // 부드럽게 이동
-        block: 'nearest'    // 이미 화면에 보인다면 움직이지 않고, 가려져 있다면 최소한으로 이동
+        behavior: 'smooth',
+        block: 'nearest' // 리스트가 너무 길 때 가장 가까운 위치로 스크롤
       });
-    } else {
-      row.classList.remove("active");
     }
   });
 }
