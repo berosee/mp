@@ -275,6 +275,8 @@ function formatTime(sec) {
   return m.toString().padStart(2, '0') + ":" + s.toString().padStart(2, '0');
 }
 
+/* ... 상단 스타일 및 HTML 구조는 동일 ... */
+
 function playSong(i) {
   curIdx = i;
   isLoaded = true;
@@ -286,8 +288,22 @@ function playSong(i) {
 
 function updateUI() {
   const rows = document.querySelectorAll("#listTable tr");
-  rows.forEach((row, k) => row.classList.toggle("active", k === curIdx));
+  
+  rows.forEach((row, k) => {
+    if (k === curIdx) {
+      row.classList.add("active");
+      // [핵심 추가] 현재 재생 곡이 리스트 뷰포트 안에 보이도록 자동 스크롤
+      row.scrollIntoView({
+        behavior: 'smooth', // 부드럽게 이동
+        block: 'nearest'    // 이미 화면에 보인다면 움직이지 않고, 가려져 있다면 최소한으로 이동
+      });
+    } else {
+      row.classList.remove("active");
+    }
+  });
 }
+
+/* ... 하단 이벤트 리스너 및 타임코드 로직 동일 ... */
 
 document.getElementById("btnPlayWrap").onclick = () => {
   if (!isLoaded) { playSong(0); } 
