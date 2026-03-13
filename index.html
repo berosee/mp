@@ -3,139 +3,164 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>mp</title>
+  <title>Simple Music Player - No Album</title>
   <style>
     :root {
       --neon-blue: #00d2ff;
       --deep-blue: #4a7cff;
-      --bg-color: #121212;
-      --card-bg: #1a1a1a;
     }
 
-    /* 전체 레이아웃 초기화 */
-    html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: var(--bg-color); color: #fff; }
-    body { font-family: 'Pretendard', -apple-system, sans-serif; display: flex; flex-direction: column; align-items: center; }
+    html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: #121212; }
+    body { font-family: 'Pretendard', sans-serif; color: #fff; display: flex; flex-direction: column; align-items: center; }
 
-    /* [고정 상단] 헤더 및 플레이어 영역 */
-    .fixed-header { 
-      width: 100%; 
-      display: flex; 
-      flex-direction: column; 
-      align-items: center; 
-      background: var(--bg-color); 
-      z-index: 1000; 
-      padding-bottom: 10px; 
-      flex-shrink: 0; 
-      border-bottom: 1px solid #222;
-    }
-
-    /* 중앙 정렬용 컨테이너 (PC/모바일 공통) */
-    .content-width { width: 92%; max-width: 420px; margin: 0 auto; }
-
-    /* 네비게이션 버튼 */
-    .nav { display: flex; gap: 4px; margin: 10px 0; background: rgba(255,255,255,0.05); padding: 4px; border-radius: 50px; }
-    .nav button { flex: 1; border: none; background: none; color: rgba(255, 255, 255, 0.4); padding: 8px 0; border-radius: 25px; font-size: 11px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-    .nav button.active { background: var(--deep-blue); color: #fff; box-shadow: 0 0 10px var(--deep-blue); }
-
-    /* 앨범 사진 영역 (2/3 축소 및 고정) */
-    .album-zone { 
-      width: 100%; 
-      aspect-ratio: 16 / 10; 
-      margin: 10px 0; 
-      overflow: hidden; 
-      border-radius: 12px; 
-      background: #000;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-    }
-    #albumArt { width: 100%; height: 100%; object-fit: cover; }
-
-    /* 곡 정보 및 타임코드 */
-    .song-info { text-align: center; margin: 10px 0 5px; }
-    .title { font-size: 16px; font-weight: 600; color: var(--neon-blue); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .time-display { font-size: 12px; color: #888; text-align: center; margin-bottom: 8px; }
-
-    /* 재생 바 */
-    .progress-container { width: 100%; height: 4px; background: #333; border-radius: 2px; cursor: pointer; margin-bottom: 15px; }
-    .progress-fill { height: 100%; background: var(--neon-blue); width: 0%; border-radius: 2px; transition: width 0.1s linear; }
-
-    /* 컨트롤 버튼 */
-    .controls { display: flex; justify-content: center; align-items: center; gap: 35px; margin-bottom: 5px; }
-    .btn-play-box { width: 48px; height: 48px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); }
-    .ctrl-btn { background: none; border: none; color: #aaa; font-size: 20px; cursor: pointer; padding: 5px; }
-    .random-btn { font-size: 13px !important; color: #666; }
-
-    /* [스크롤 영역] 하단 리스트 */
-    .playlist-wrapper { 
-      width: 100%; 
-      flex-grow: 1; 
-      overflow-y: auto; 
-      background: #151515;
+    /* [상단 고정 영역] */
+    .fixed-header {
+      width: 100%;
       display: flex;
       flex-direction: column;
       align-items: center;
+      background: #121212;
+      z-index: 100;
+      padding-bottom: 10px;
+      flex-shrink: 0;
+      border-bottom: 1px solid #222;
     }
-    
-    .playlist-table { width: 100%; max-width: 420px; border-collapse: collapse; margin-bottom: 20px; }
-    .playlist-table tr { border-bottom: 1px solid #1f1f1f; cursor: pointer; transition: 0.2s; }
-    .playlist-table tr:hover { background: rgba(255,255,255,0.02); }
-    .playlist-table td { padding: 14px 20px; font-size: 14px; color: #bbb; line-height: 1.4; }
-    .playlist-table tr.active { background: rgba(0, 210, 255, 0.08); }
-    .playlist-table tr.active td { color: var(--neon-blue); font-weight: bold; }
 
-    /* 스크롤바 디자인 */
-    .playlist-wrapper::-webkit-scrollbar { width: 5px; }
-    .playlist-wrapper::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+    .nav, .player-card {
+      width: 92%;
+      max-width: 380px;
+    }
+
+    /* 카테고리 네비게이션 */
+    .nav {
+      display: flex; gap: 4px; margin: 12px 0;
+      background: rgba(255,255,255,0.05); padding: 4px; border-radius: 50px;
+    }
+    .nav a {
+      flex: 1; text-decoration: none; color: rgba(255, 255, 255, 0.4);
+      padding: 8px 0; text-align: center; border-radius: 25px; font-size: 11px; font-weight: bold;
+    }
+    .nav a.active { background: var(--deep-blue); color: #fff; box-shadow: 0 0 10px var(--deep-blue); }
+
+    /* [사진이 빠진] 슬림한 플레이어 카드 */
+    .player-card {
+      background: #0f172a;
+      border-radius: 15px; 
+      padding: 15px 20px;
+      text-align: center; 
+      border: 1px solid rgba(0, 210, 255, 0.15);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+
+    /* 곡 제목 - 사진이 없으므로 조금 더 강조 */
+    .song-info .title { 
+      font-size: 17px; 
+      font-weight: bold; 
+      margin-bottom: 15px; 
+      color: var(--neon-blue);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* 비주얼라이저와 타임코드 좌우 배치 */
+    .status-row { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      margin-bottom: 12px; 
+    }
+
+    .time-display { 
+      font-size: 13px; 
+      font-family: 'Consolas', monospace; 
+      color: #888;
+    }
+
+    .bar-container { display: flex; gap: 3px; align-items: flex-end; height: 14px; }
+    .bar { width: 3px; background: var(--neon-blue); border-radius: 1px; height: 4px; transition: 0.2s; }
+    .bar.playing { animation: bounce 0.6s ease-in-out infinite alternate; }
+    @keyframes bounce { from { height: 4px; } to { height: 14px; } }
+
+    /* 재생 바 */
+    .progress-container { width: 100%; cursor: pointer; padding: 5px 0; margin-bottom: 12px; }
+    .progress-bg { height: 3px; background: rgba(255, 255, 255, 0.1); border-radius: 2px; }
+    .progress-fill { width: 0%; height: 100%; background: var(--neon-blue); border-radius: 2px; transition: width 0.1s linear; }
+
+    /* 컨트롤 버튼 */
+    .controls { display: flex; justify-content: center; align-items: center; gap: 35px; }
+    .btn-play-box { 
+      border: 1.5px solid var(--neon-blue); 
+      border-radius: 50%;
+      width: 48px; height: 48px; 
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .btn-play-box:active { transform: scale(0.9); background: rgba(0, 210, 255, 0.1); }
+
+    /* [스크롤 영역] 목록을 더 넓게 사용 */
+    .playlist-wrapper { 
+      width: 100%;
+      flex: 1; 
+      overflow-y: auto; 
+      background: #161b22; 
+      -webkit-overflow-scrolling: touch;
+    }    
+    .playlist-table { width: 100%; max-width: 420px; margin: 0 auto; border-collapse: collapse; }
+    .playlist-table td { 
+      padding: 12px 20px; 
+      font-size: 14px; 
+      border-bottom: 1px solid rgba(255,255,255,0.03); 
+      color: #94a3b8; cursor: pointer; 
+    }    
+    .playlist-table tr.active td { 
+      color: var(--neon-blue); 
+      font-weight: bold; 
+      background: rgba(0, 210, 255, 0.08); 
+    }
   </style>
 </head>
 <body>
 
 <div class="fixed-header">
-  <div class="content-width">
-    <div class="nav" id="menu">
-      <button onclick="loadCategory('old')" id="old">OLD</button>
-      <button onclick="loadCategory('enka')" id="enka">ENKA</button>
-      <button onclick="loadCategory('jazz')" id="jazz">JAZZ</button>
+  <div class="nav">
+    <a href="?cat=old" id="nav-old">OLD</a>
+    <a href="?cat=enka" id="nav-enka">ENKA</a>
+    <a href="?cat=jazz" id="nav-jazz">JAZZ</a>
+  </div>
+
+  <div class="player-card">
+    <div class="song-info">
+      <div class="title" id="labelTitle">곡을 선택해 주세요</div>
+    </div>
+    
+    <div class="status-row">
+      <div class="bar-container" id="visualizer">
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+      </div>
+      <div class="time-display"><span id="curTime">00:00</span> / <span id="durTime">00:00</span></div>
     </div>
 
-    <div class="player-card">
-      <div class="album-zone">
-        <img id="albumArt" src="https://via.placeholder.com/400x250?text=Loading..." alt="Album Cover">
-      </div>
+    <div class="progress-container" id="progArea">
+      <div class="progress-bg"><div class="progress-fill" id="progFill"></div></div>
+    </div>
 
-      <div class="song-info">
-        <div class="title" id="labelTitle">곡을 선택해 주세요</div>
-      </div>
-      
-      <div class="time-display"><span id="curTime">00:00</span> / <span id="durTime">00:00</span></div>
-      
-      <div class="progress-container" id="progArea" onclick="seek(event)">
-        <div class="progress-fill" id="progFill"></div>
-      </div>
-      
-      <audio id="player"></audio>
-
-      <div class="controls">
-        <button class="ctrl-btn" onclick="prevSong()">⏮</button>
-        <div class="btn-play-box" onclick="togglePlay()"><span id="btnIcon" style="color:var(--neon-blue);font-size:22px;">▶</span></div>
-        <button class="ctrl-btn" onclick="nextSong()">⏭</button>
-        <button class="ctrl-btn random-btn" onclick="randomSong()">랜덤</button>
-      </div>
+    <div class="controls">
+      <button style="background:none;border:none;color:#64748b;font-size:20px;cursor:pointer;" id="btnPrev">⏮</button>
+      <div class="btn-play-box" id="btnPlayWrap"><span id="btnIcon" style="color:var(--neon-blue);font-size:22px;">▶</span></div>
+      <button style="background:none;border:none;color:#64748b;font-size:20px;cursor:pointer;" id="btnNext">⏭</button>
     </div>
   </div>
 </div>
 
 <div class="playlist-wrapper" id="scrollContainer">
-  <table class="playlist-table" id="listTable">
-    <tbody id="playlistBody"></tbody>
-  </table>
+  <table class="playlist-table" id="listTable"></table>
 </div>
 
 <script>
 const user = "berosee";
-const repo = "mp";
+const repo = "repoa";
 let songs = [];
 let names = [];
 let index = 0;
