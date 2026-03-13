@@ -155,7 +155,8 @@
 </div>
 
 <div class="playlist-wrapper" id="scrollContainer">
-  <table class="playlist-table" id="listTable"></table>
+  <table class="playlist-table" id="listTable">
+  <tbody id="playlistBody"></tbody> </table>
 </div>
 
 <script>
@@ -164,10 +165,7 @@ const repo = "mp";
 let songs = [];
 let names = [];
 let index = 0;
-
-const player = document.getElementById("player");
-const albumArt = document.getElementById("albumArt");
-
+const player = new Audio(); // 이 줄을 추가해 주세요
 async function loadCategory(folder) {
     setActiveButton(folder);
     
