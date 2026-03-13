@@ -12,30 +12,20 @@
     .fixed-header { width: 100%; display: flex; flex-direction: column; align-items: center; background: #121212; z-index: 100; padding-bottom: 10px; flex-shrink: 0; border-bottom: 1px solid #222; }
     .nav, .player-card { width: 92%; max-width: 380px; }
 
+    /* 네비게이션 버튼 디자인 */
     .nav { display: flex; gap: 4px; margin: 12px 0; background: rgba(255,255,255,0.05); padding: 4px; border-radius: 50px; }
-    .nav a { flex: 1; text-decoration: none; color: rgba(255, 255, 255, 0.4); padding: 8px 0; text-align: center; border-radius: 25px; font-size: 11px; font-weight: bold; cursor: pointer; }
-   /* --- 이 부분을 찾아서 수정하세요 --- */
+    .nav button { 
+        flex: 1; border: none; background: none; color: rgba(255, 255, 255, 0.4); 
+        padding: 10px 0; text-align: center; border-radius: 25px; font-size: 11px; 
+        font-weight: bold; cursor: pointer; transition: all 0.3s ease;
+    }
 
-.nav a { 
-    flex: 1; 
-    text-decoration: none; 
-    color: rgba(255, 255, 255, 0.4); 
-    padding: 8px 0; 
-    text-align: center; 
-    border-radius: 25px; 
-    font-size: 11px; 
-    font-weight: bold; 
-    cursor: pointer; 
-    transition: all 0.3s ease; /* 부드러운 변화를 위해 추가 */
-}
-
-/* 활성화되었을 때 파란 배경과 그림자 */
-.nav a.active { 
-    background: linear-gradient(135deg, var(--deep-blue), var(--neon-blue)) !important; 
-    color: #fff !important; 
-    box-shadow: 0 0 15px rgba(0, 210, 255, 0.6); /* 파란 네온 효과 */
-    transform: scale(1.02); /* 살짝 커지는 효과 */
-}
+    /* [수정] 버튼 활성화 시 파란색 배경 효과 */
+    .nav button.active { 
+        background: linear-gradient(135deg, var(--deep-blue), var(--neon-blue)) !important; 
+        color: #fff !important; 
+        box-shadow: 0 0 15px rgba(0, 210, 255, 0.6);
+    }
 
     .player-card { background: #0f172a; border-radius: 15px; padding: 15px 20px; text-align: center; border: 1px solid rgba(0, 210, 255, 0.15); }
     .song-info .title { font-size: 17px; font-weight: bold; margin-bottom: 15px; color: var(--neon-blue); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -63,9 +53,9 @@
 
 <div class="fixed-header">
   <div class="nav">
-    <button onclick="location.href='?cat=old'" class="cat-btn" id="nav-old" style="flex:1; background:none; border:none; color:inherit; cursor:pointer;">OLD</button>
-    <button onclick="location.href='?cat=enka'" class="cat-btn" id="nav-enka" style="flex:1; background:none; border:none; color:inherit; cursor:pointer;">ENKA</button>
-    <button onclick="location.href='?cat=jazz'" class="cat-btn" id="nav-jazz" style="flex:1; background:none; border:none; color:inherit; cursor:pointer;">JAZZ</button>
+    <button onclick="location.href='?cat=old'" id="nav-old">OLD</button>
+    <button onclick="location.href='?cat=enka'" id="nav-enka">ENKA</button>
+    <button onclick="location.href='?cat=jazz'" id="nav-jazz">JAZZ</button>
   </div>
 
   <div class="player-card">
@@ -89,7 +79,8 @@
 
 <div class="playlist-wrapper">
   <table class="playlist-table">
-    <tbody id="playlistBody"></tbody> </table>
+    <tbody id="playlistBody"></tbody>
+  </table>
 </div>
 
 <script>
@@ -99,15 +90,19 @@ let songs = [];
 let names = [];
 let index = 0;
 
-const player = new Audio(); // [해결 2] 오디오 재생기 생성
+const player = new Audio();
 
-// 카테고리 설정
 const params = new URLSearchParams(window.location.search);
 const curCat = params.get("cat") || "old";
-document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
-if(document.getElementById("nav-" + curCat)) document.getElementById("nav-" + curCat).classList.add('active');
 
+// [통합된 핵심 함수] 버튼 불 켜기와 리스트 불러오기를 한 번에 처리
 async function loadCategory(folder) {
+    // 1. 버튼 활성화 상태 표시
+    document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+    const activeBtn = document.getElementById("nav-" + folder);
+    if(activeBtn) activeBtn.classList.add('active');
+
+    // 2. 노래 데이터 불러오기
     const api = `https://api.github.com/repos/${user}/${repo}/contents/${folder}`;
     try {
         const res = await fetch(api);
@@ -123,18 +118,8 @@ async function loadCategory(folder) {
                 html += `<tr onclick="playSong(${songs.length-1})"><td>${file.name}</td></tr>`;
             }
         });
-        document.getElementById("playlistBody").innerHTML = html; // [해결 3] 정확한 id에 리스트 삽입
-    } catch(e) { console.error("데이터 로드 실패", e); }
-}
-async function loadCategory(folder) {
-    // 1. 모든 메뉴에서 파란색(active)을 지웁니다.
-    document.querySelectorAll('.nav a').forEach(el => el.classList.remove('active'));
-    
-    // 2. 현재 선택된 폴더(folder) 아이디를 가진 메뉴에 파란색을 입힙니다.
-    const activeMenu = document.getElementById("nav-" + folder);
-    if (activeMenu) activeMenu.classList.add('active');
-
-    // ... (이후 기존의 리스트 로딩 코드들) ...
+        document.getElementById("playlistBody").innerHTML = html;
+    } catch(e) { console.error("로드 실패", e); }
 }
 
 function playSong(i) {
@@ -182,18 +167,4 @@ player.ontimeupdate = () => {
         const dur = player.duration;
         document.getElementById("curTime").textContent = formatTime(cur);
         document.getElementById("durTime").textContent = formatTime(dur);
-        document.getElementById("progFill").style.width = (cur / dur * 100) + "%";
-    }
-};
-player.addEventListener("ended", nextSong);
-
-function formatTime(sec) {
-    const m = Math.floor(sec / 60);
-    const s = Math.floor(sec % 60);
-    return m.toString().padStart(2, '0') + ":" + s.toString().padStart(2, '0');
-}
-
-loadCategory(curCat);
-</script>
-</body>
-</html>
+        document.getElementById("progFill").style.width = (cur / dur
