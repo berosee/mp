@@ -20,7 +20,7 @@
         font-weight: bold; cursor: pointer; transition: all 0.3s ease;
     }
 
-    /* [수정] 버튼 활성화 시 파란색 배경 효과 */
+    /* [중요] 선택된 버튼 파란색 배경 효과 */
     .nav button.active { 
         background: linear-gradient(135deg, var(--deep-blue), var(--neon-blue)) !important; 
         color: #fff !important; 
@@ -38,7 +38,7 @@
 
     .progress-container { width: 100%; cursor: pointer; padding: 5px 0; margin-bottom: 12px; }
     .progress-bg { height: 3px; background: rgba(255, 255, 255, 0.1); border-radius: 2px; }
-    .progress-fill { width: 0%; height: 100%; background: var(--neon-blue); border-radius: 2px; }
+    .progress-fill { width: 0%; height: 100%; background: var(--neon-blue); border-radius: 2px; transition: width 0.1s linear; }
 
     .controls { display: flex; justify-content: center; align-items: center; gap: 35px; }
     .btn-play-box { border: 1.5px solid var(--neon-blue); border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
@@ -53,9 +53,9 @@
 
 <div class="fixed-header">
   <div class="nav">
-    <button onclick="location.href='?cat=old'" id="nav-old">OLD</button>
-    <button onclick="location.href='?cat=enka'" id="nav-enka">ENKA</button>
-    <button onclick="location.href='?cat=jazz'" id="nav-jazz">JAZZ</button>
+    <button onclick="loadCategory('old')" id="nav-old">OLD</button>
+    <button onclick="loadCategory('enka')" id="nav-enka">ENKA</button>
+    <button onclick="loadCategory('jazz')" id="nav-jazz">JAZZ</button>
   </div>
 
   <div class="player-card">
@@ -84,44 +84,57 @@
 </div>
 
 <script>
+// 사용자 정보 설정
 const user = "berosee";
 const repo = "mp";
 let songs = [];
 let names = [];
 let index = 0;
 
-const player = new Audio();
+const player = new Audio(); // 오디오 엔진 생성
 
-const params = new URLSearchParams(window.location.search);
-const curCat = params.get("cat") || "old";
-
-// [통합된 핵심 함수] 버튼 불 켜기와 리스트 불러오기를 한 번에 처리
+// [핵심] 리스트를 불러오고 버튼의 불을 켜는 통합 함수
 async function loadCategory(folder) {
-    // 1. 버튼 활성화 상태 표시
+    // 1. 모든 버튼에서 파란 불 지우기
     document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+    // 2. 현재 선택된 버튼만 파란 불 켜기
     const activeBtn = document.getElementById("nav-" + folder);
     if(activeBtn) activeBtn.classList.add('active');
 
-    // 2. 노래 데이터 불러오기
+    // 3. GitHub에서 노래 목록 가져오기
     const api = `https://api.github.com/repos/${user}/${repo}/contents/${folder}`;
     try {
         const res = await fetch(api);
         const data = await res.json();
-        songs = []; names = [];
+        
+        songs = []; 
+        names = [];
         let html = '';
+
         data.forEach(file => {
             const fileName = file.name.toLowerCase();
+            // 확장자 확인
             if(fileName.endsWith(".mp3") || fileName.endsWith(".flac")) {
                 const url = `https://cdn.jsdelivr.net/gh/${user}/${repo}@main/${folder}/${file.name}`;
                 songs.push(url);
                 names.push(file.name);
+                // 리스트 한 줄씩 생성
                 html += `<tr onclick="playSong(${songs.length-1})"><td>${file.name}</td></tr>`;
             }
         });
+        // 화면에 리스트 뿌리기
         document.getElementById("playlistBody").innerHTML = html;
-    } catch(e) { console.error("로드 실패", e); }
+        
+        // 브라우저 주소창 업데이트 (새로고침 시 유지용)
+        window.history.pushState({}, '', `?cat=${folder}`);
+        
+    } catch(e) {
+        console.error("노래 목록 로드 실패:", e);
+        document.getElementById("playlistBody").innerHTML = '<tr><td>노래를 불러오지 못했습니다.</td></tr>';
+    }
 }
 
+// 노래 재생 함수
 function playSong(i) {
     index = i;
     player.src = songs[index];
@@ -130,11 +143,13 @@ function playSong(i) {
     updateUI();
 }
 
+// 재생/일시정지 토글
 function togglePlay() {
     if (!player.src) { if(songs.length > 0) playSong(0); return; }
     player.paused ? player.play() : player.pause();
 }
 
+// 현재 재생중인 곡 표시
 function updateUI() {
     const rows = document.querySelectorAll("#playlistBody tr");
     rows.forEach((row, k) => {
@@ -143,9 +158,11 @@ function updateUI() {
     });
 }
 
-function nextSong() { index = (index + 1) % songs.length; playSong(index); }
-function prevSong() { index = (index - 1 + songs.length) % songs.length; playSong(index); }
+// 이전/다음 곡
+function nextSong() { if(songs.length > 0) { index = (index + 1) % songs.length; playSong(index); } }
+function prevSong() { if(songs.length > 0) { index = (index - 1 + songs.length) % songs.length; playSong(index); } }
 
+// 재생 바 클릭 시 이동
 function seek(e) {
     if(!player.duration) return;
     const rect = document.getElementById("progArea").getBoundingClientRect();
@@ -153,18 +170,9 @@ function seek(e) {
     player.currentTime = pos * player.duration;
 }
 
+// 오디오 이벤트 리스너
 player.addEventListener("play", () => {
     document.getElementById("btnIcon").textContent = "Ⅱ";
     document.querySelectorAll(".bar").forEach(b => b.classList.add("playing"));
 });
-player.addEventListener("pause", () => {
-    document.getElementById("btnIcon").textContent = "▶";
-    document.querySelectorAll(".bar").forEach(b => b.classList.remove("playing"));
-});
-player.ontimeupdate = () => {
-    if (player.duration) {
-        const cur = player.currentTime;
-        const dur = player.duration;
-        document.getElementById("curTime").textContent = formatTime(cur);
-        document.getElementById("durTime").textContent = formatTime(dur);
-        document.getElementById("progFill").style.width = (cur / dur
+player.
