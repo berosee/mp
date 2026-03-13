@@ -175,4 +175,31 @@ player.addEventListener("play", () => {
     document.getElementById("btnIcon").textContent = "Ⅱ";
     document.querySelectorAll(".bar").forEach(b => b.classList.add("playing"));
 });
-player.
+player.addEventListener("pause", () => {
+    document.getElementById("btnIcon").textContent = "▶";
+    document.querySelectorAll(".bar").forEach(b => b.classList.remove("playing"));
+});
+player.ontimeupdate = () => {
+    if (player.duration) {
+        const cur = player.currentTime;
+        const dur = player.duration;
+        document.getElementById("curTime").textContent = formatTime(cur);
+        document.getElementById("durTime").textContent = formatTime(dur);
+        document.getElementById("progFill").style.width = (cur / dur * 100) + "%";
+    }
+};
+player.addEventListener("ended", nextSong);
+
+function formatTime(sec) {
+    const m = Math.floor(sec / 60);
+    const s = Math.floor(sec % 60);
+    return m.toString().padStart(2, '0') + ":" + s.toString().padStart(2, '0');
+}
+
+// 처음 접속 시 실행할 카테고리 결정
+const params = new URLSearchParams(window.location.search);
+const startCat = params.get("cat") || "old";
+loadCategory(startCat);
+</script>
+</body>
+</html>
